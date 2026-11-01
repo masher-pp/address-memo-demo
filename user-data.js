@@ -30,6 +30,7 @@
   }
   function nextStop(state){return state.route.filter(id=>!state.completed.includes(id)).map(id=>state.places.find(p=>p.id===id)).find(Boolean)||null;}
   function hasLocation(p){return p.x!=null||(Number.isFinite(p.lat)&&Number.isFinite(p.lng));}
+  function hasCoordinates(p){return !!p&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180;}
   function orderStops(state){
     const remaining=state.route.filter(id=>!state.completed.includes(id));
     const ordered=[];let current={x:48,y:85};
@@ -60,16 +61,29 @@
     const angle=Math.atan2(lat,lng)+.000003*Math.cos(lng*Math.PI*3000/180);
     return {lat:z*Math.sin(angle)+.006,lng:z*Math.cos(angle)+.0065};
   }
-  function mapUrl(provider,p){
+  function mapAppUrl(provider,p,platform='android'){
+    if(!hasCoordinates(p))throw Error('请先补充真实入口位置，再开始导航');
+    const q=encodeURIComponent([p.enterprise,p.name].filter(Boolean).join(' '));
+    const c=p.coordSystem==='gcj02'?{lat:p.lat,lng:p.lng}:gcj02(p.lat,p.lng);
+    if(provider==='百度地图'){
+      const b=bd09(c.lat,c.lng);
+      return `bdapp://map/navi?location=${b.lat.toFixed(6)},${b.lng.toFixed(6)}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=${platform==='ios'?'ios':'andr'}.addressmemo.demo`;
+    }
+    if(provider==='高德地图')return `${platform==='ios'?'iosamap':'androidamap'}://navi?sourceApplication=addressmemo&poiname=${q}&lat=${c.lat.toFixed(6)}&lon=${c.lng.toFixed(6)}&dev=0&style=0`;
+    return null;
+  }
+  function mapUrl(provider,p,origin){
     const name=[p.enterprise,p.name,p.address].filter(Boolean).join(' '),q=encodeURIComponent(name);
     const coords=Number.isFinite(p.lat)&&Number.isFinite(p.lng)?(p.coordSystem==='gcj02'?{lat:p.lat,lng:p.lng}:gcj02(p.lat,p.lng)):null;
     if(provider==='高德地图')return coords?`https://uri.amap.com/navigation?to=${coords.lng.toFixed(6)},${coords.lat.toFixed(6)},${q}&mode=car&src=addressmemo`:`https://uri.amap.com/search?keyword=${q}&src=addressmemo`;
     if(provider==='百度地图'){
       if(!coords)return `https://map.baidu.com/search/${q}`;
+      if(!hasCoordinates(origin))throw Error('百度路线规划需要先获取当前位置作为起点');
       const b=bd09(coords.lat,coords.lng);
-      return `https://api.map.baidu.com/direction?destination=latlng:${b.lat.toFixed(6)},${b.lng.toFixed(6)}|name:${q}&mode=driving&coord_type=bd09ll&output=html&src=addressmemo`;
+      const o=origin.coordSystem==='gcj02'?origin:gcj02(origin.lat,origin.lng),start=bd09(o.lat,o.lng);
+      return `https://api.map.baidu.com/direction?origin=latlng:${start.lat.toFixed(6)},${start.lng.toFixed(6)}|name:${encodeURIComponent('当前位置')}&destination=latlng:${b.lat.toFixed(6)},${b.lng.toFixed(6)}|name:${q}&mode=driving&coord_type=bd09ll&output=html&src=webapp.addressmemo.demo`;
     }
     return coords?`https://apis.map.qq.com/uri/v1/routeplan?type=drive&to=${q}&tocoord=${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}&referer=addressmemo`:`https://apis.map.qq.com/uri/v1/search?keyword=${q}&referer=addressmemo`;
   }
-  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,orderStops,gcj02,mapUrl};
+  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,mapUrl,mapAppUrl};
 });

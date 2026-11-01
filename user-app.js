@@ -70,11 +70,43 @@
   function renderMine(){content.innerHTML=`<section class="profile"><span class="profile-avatar">${icon('user')}</span><div><h2>演示体验</h2><p>现场记录保存在这台设备</p></div><span class="local-badge">本机</span></section><div class="menu-group">${menuRow('camera','我的现场记录',state.recorded.length+' 个场所','my-records')}${menuRow('clock','最近修改',state.history.length+' 条','my-history')}</div><div class="menu-group">${menuRow('map','默认导航地图',state.settings.mapProvider,'map-settings')}${menuRow('info','使用说明','','guide')}${menuRow('settings','设置与备份','','settings')}</div><p class="page-note">地址备忘录 · 用户端演示<br>当前尚未连接账号和共享服务</p>`;}
   function renderRecords(){const ps=state.recorded.map(place).filter(Boolean);content.innerHTML=`<p class="subpage-note">你补充过的入口位置、图文路线和现场信息</p>${ps.length?`<div class="record-list">${ps.map(p=>`<article class="record-card"><button data-action="detail" data-id="${p.id}"><h2>${esc(p.enterprise)}</h2><p>${esc(p.name)}</p><span>${esc(p.arrivalGuide?.steps?.[0]?.description||p.guideFeedback?.[0]?.text||p.note||p.address)}</span></button><footer><small>${esc(p.updated)}</small><button class="text-button" data-action="record" data-id="${p.id}">继续编辑${icon('chevron')}</button></footer></article>`).join('')}</div>`:empty('还没有现场记录','在到访指引中点击“我来指路”，或补充入口位置。','<button class="plain-button" data-action="add-visits">查找企业</button>')}`;}
   function renderHistory(){content.innerHTML=state.history.length?`<div class="history-list">${state.history.map(h=>`<button class="history-entry" data-action="detail" data-id="${esc(h.placeId)}"><span class="history-dot"></span><div><div class="history-entry-title"><b>${esc(h.action)}</b><time>${esc(h.time)}</time></div><h2>${esc(place(h.placeId)?.enterprise||'场所记录')}</h2><p>${esc(h.summary||'资料已更新')}</p></div>${icon('chevron')}</button>`).join('')}</div>`:empty('暂无修改记录','保存现场信息后会在这里显示');}
-  function renderSettings(){content.innerHTML=`<div class="settings-group"><h2>导航</h2>${menuRow('map','默认导航地图',state.settings.mapProvider,'map-settings')}</div><div class="settings-group"><h2>本机数据</h2>${menuRow('download','导出记录备份','JSON 文件','export-backup')}${menuRow('undo','恢复示例数据','','clear-local')}</div><p class="subpage-note">备份包含本机保存的地址、照片、补充说明和走访清单。浏览器清理网站数据后，这些记录也会被清除。</p><div class="settings-group"><h2>关于</h2>${menuRow('info','使用说明','','guide')}<div class="settings-caption"><span>版本</span><small>用户端 Demo 3.0</small></div></div>`;}
-  function renderHelp(){content.innerHTML=`<div class="help-content"><h2>找企业，看入口</h2><p>搜索企业、场所或地址，点开结果查看完整图文指引。同一家企业的不同场所分别显示。</p><h2>导航与走访</h2><p>点击导航选择地图。需要连续去几家企业时，先加入走访清单；到访后标记完成，再去下一站。</p><h2>记录现场</h2><p>“我来指路”可上传照片、补充入口变化。修改整条路线或入口位置，在场所“更多”中选择“编辑图文指引”。</p><h2>这份演示的数据</h2><p>初始企业和地图点位均为虚构示例。新增内容只保存在当前浏览器，未同步到其他设备；可在设置中导出备份。</p><h2>地图与手机定位</h2><p>示例企业通过名称搜索地图；GPS 坐标可用于外部地图导航。手机定位需 HTTPS 和位置权限；实际路线以地图软件为准。</p></div>`;}
+  function renderSettings(){content.innerHTML=`<div class="settings-group"><h2>导航</h2>${menuRow('map','默认导航地图',state.settings.mapProvider,'map-settings')}</div><div class="settings-group"><h2>本机数据</h2>${menuRow('download','导出记录备份','JSON 文件','export-backup')}${menuRow('undo','恢复示例数据','','clear-local')}</div><p class="subpage-note">备份包含本机保存的地址、照片、补充说明和走访清单。浏览器清理网站数据后，这些记录也会被清除。</p><div class="settings-group"><h2>关于</h2>${menuRow('info','使用说明','','guide')}<div class="settings-caption"><span>版本</span><small>用户端 Demo 3.1</small></div></div>`;}
+  function renderHelp(){content.innerHTML=`<div class="help-content"><h2>找企业，看入口</h2><p>搜索企业、场所或地址，点开结果查看完整图文指引。同一家企业的不同场所分别显示。</p><h2>导航与走访</h2><p>点击导航选择地图。需要连续去几家企业时，先加入走访清单；到访后标记完成，再去下一站。</p><h2>记录现场</h2><p>“我来指路”可上传照片、补充入口变化。修改整条路线或入口位置，在场所“更多”中选择“编辑图文指引”。</p><h2>这份演示的数据</h2><p>初始企业和地图点位均为虚构示例。新增内容只保存在当前浏览器，未同步到其他设备；可在设置中导出备份。</p><h2>地图与手机定位</h2><p>示例点没有真实坐标，需在实际入口处定位并保存后再导航。百度、高德可调用手机 App 驾车导航；百度网页版会先获取当前位置作为起点。手机定位需 HTTPS 和位置权限；实际路线以地图软件为准。</p></div>`;}
   function mapSettings(){openModal('默认导航地图',`<div class="option-list">${['每次询问','高德地图','百度地图','腾讯地图'].map(n=>`<button data-action="set-map-provider" data-id="${n}"><span>${n}</span>${state.settings.mapProvider===n?icon('check'):''}</button>`).join('')}</div><p class="sheet-note">选择后，导航面板会优先显示这张地图。</p>`);}
-  function navigate(id){const p=place(id);if(!p)return;selected=id;const providers=['高德地图','百度地图','腾讯地图'];if(providers.includes(state.settings.mapProvider))providers.sort((a,b)=>a===state.settings.mapProvider?-1:b===state.settings.mapProvider?1:0);
-    openModal('导航到这里',`<div class="navigation-place"><h3>${esc(p.enterprise)}</h3><p>${esc(p.name)} · ${esc(p.address)}</p></div>${p.status!=='verified'?`<p class="navigation-caution">${esc(C.statuses[p.status])}，到现场后请确认入口</p>`:''}<div class="provider-list">${providers.map((n,i)=>`<button data-action="provider" data-id="${n}" data-place="${p.id}"><span class="provider-icon provider-${i}">${n[0]}</span><span>${n}${state.settings.mapProvider===n?'<small>默认地图</small>':''}</span>${icon('chevron')}</button>`).join('')}</div><div id="provider-result"></div><p class="sheet-note">${Number.isFinite(p.lat)?'使用已记录的入口坐标':'该场所使用示例地址，将在地图中搜索名称'}</p>`);}
+  function navigationPlatform(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1?'ios':/Android|HarmonyOS/i.test(navigator.userAgent)?'android':'desktop';}
+  function navigate(id){
+    const p=place(id);if(!p)return;selected=id;
+    const heading=`<div class="navigation-place"><h3>${esc(p.enterprise)}</h3><p>${esc(p.name)} · ${esc(p.address)}</p></div>`;
+    if(!U.hasCoordinates(p)){
+      openModal('还没有真实入口位置',heading+'<p class="navigation-caution">这个场所尚未记录真实坐标。示意地图上的点不能用于实际导航。</p><button class="primary navigation-record" data-action="navigation-record" data-id="'+esc(id)+'">到入口现场补充定位</button><p class="sheet-note">请在实际入口处使用手机定位，保存后即可导航到该位置。</p>');return;
+    }
+    const platform=navigationPlatform(),mobile=platform!=='desktop',providers=['高德地图','百度地图','腾讯地图'];
+    if(providers.includes(state.settings.mapProvider))providers.sort((a,b)=>a===state.settings.mapProvider?-1:b===state.settings.mapProvider?1:0);
+    const rows=providers.map((n,i)=>{
+      const href=mobile?U.mapAppUrl(n,p,platform):null;
+      const inside=`<span class="provider-icon provider-${i}">${n[0]}</span><span>${n}<small>${href?'打开 App 驾车导航':'网页路线规划'}</small></span>${icon('chevron')}`;
+      return href?`<a class="provider-app" href="${esc(href)}" data-action="app-navigation" data-id="${n}" data-place="${p.id}">${inside}</a>`:`<button data-action="provider" data-id="${n}" data-place="${p.id}">${inside}</button>`;
+    }).join('');
+    openModal('导航到入口',heading+`<div class="provider-list">${rows}</div><div id="provider-result" role="status"></div>${mobile?`<details class="navigation-fallback"><summary>地图没有唤起？</summary><p class="sheet-note">请先安装地图 App。微信内打不开时，用手机自带浏览器打开本站。</p><button class="plain-button" data-action="provider" data-id="百度地图" data-place="${p.id}">使用百度网页版规划路线</button></details>`:''}<p class="sheet-note">目的地已使用记录的入口坐标。地图中如出现确认提示，请按提示开始导航。</p>`);
+  }
+  function openWebRoute(provider,id){
+    const p=place(id);if(!U.hasCoordinates(p)){navigate(id);return;}
+    const result=$('#provider-result');
+    if(provider!=='百度地图'){
+      const url=U.mapUrl(provider,p);window.open(url,'_blank','noopener');
+      result.innerHTML=`<a class="external-map-link" href="${esc(url)}" target="_blank" rel="noopener">打开${esc(provider)}路线规划${icon('arrow')}</a>`;return;
+    }
+    result.innerHTML='<p class="provider-status">正在获取当前位置作为起点…</p>';
+    if(!window.isSecureContext||!navigator.geolocation){result.innerHTML='<p class="form-error">当前浏览器无法定位，请用手机浏览器打开 HTTPS 链接，或直接使用地图 App 导航。</p>';return;}
+    navigator.geolocation.getCurrentPosition(pos=>{
+      if(!modal.open||selected!==id||!result.isConnected)return;
+      const url=U.mapUrl(provider,p,{lat:pos.coords.latitude,lng:pos.coords.longitude});
+      result.innerHTML=`<a class="external-map-link" href="${esc(url)}" target="_blank" rel="noopener">打开百度驾车路线${icon('arrow')}</a><p class="sheet-note">已准备好起点和入口坐标，点击上方按钮打开路线。</p>`;
+    },e=>{
+      if(!modal.open||selected!==id||!result.isConnected)return;
+      result.innerHTML=`<p class="form-error">${e.code===1?'未获位置权限，无法确定路线起点。请允许浏览器定位，或选择地图 App 导航。':e.code===3?'获取起点超时，请重试或选择地图 App 导航。':'暂时无法获取起点，请重试或选择地图 App 导航。'}</p>`;
+    },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+  }
   function placeMenu(id){const p=place(id);if(!p)return;openModal(p.name,`<p class="sheet-place-name">${esc(p.enterprise)}</p><div class="option-list"><button data-action="menu-info" data-id="${p.id}">${icon('info')}场所资料${icon('chevron')}</button><button data-action="menu-record" data-id="${p.id}">${icon('edit')}编辑图文指引${icon('chevron')}</button><button data-action="menu-route" data-id="${p.id}">${icon('route')}${state.route.includes(id)?'已在走访清单':'加入走访清单'}${icon('chevron')}</button></div>`);}
   function formError(selector,message){const e=$(selector);e.hidden=false;e.textContent=message;e.scrollIntoView({block:'nearest'});}
   function addHistory(s,id,action,summary){s.recorded=[id,...s.recorded.filter(x=>x!==id)];s.history.unshift({id:'h-'+Date.now(),placeId:id,action,summary,author:'当前用户',time:now()});}
@@ -109,7 +141,10 @@
     case'filter-reset':modal.querySelectorAll('input[type="checkbox"]').forEach(e=>e.checked=false);modal.querySelector('input[value="all"]').checked=true;break;
     case'reset-filters':filters={status:'all',tags:[]};updateSearch();break;
     case'show-map':$('#user-search')?.blur();go('home','map');break;case'map-select':selected=id;renderMap();break;case'show-list':searchOpen=true;go('home');break;
-    case'navigate':navigate(id);break;case'provider':{const p=place(el.dataset.place);if(!p)return;const url=U.mapUrl(id,p);window.open(url,'_blank','noopener');$('#provider-result').innerHTML=`<p class="provider-status">已选择${esc(id)}</p><a class="external-map-link" href="${esc(url)}" target="_blank" rel="noopener">打开${esc(id)}${icon('arrow')}</a>`;break;}
+    case'navigate':navigate(id);break;
+    case'app-navigation':$('#provider-result').innerHTML='<p class="provider-status">如未进入导航，请检查是否已安装地图 App，或展开下方其他方式。</p>';break;
+    case'provider':openWebRoute(id,el.dataset.place);break;
+    case'navigation-record':modal.close();arrival.edit(id);break;
     case'route-add':routeAdd(id);break;case'route-manage':managing=!managing;render();break;case'route-up':moveRoute(id,-1);break;case'route-down':moveRoute(id,1);break;
     case'route-remove':if(trySave(s=>{s.route=s.route.filter(x=>x!==id);s.completed=s.completed.filter(x=>x!==id);})){render();toast('已移出走访清单');}break;
     case'route-complete':if(trySave(s=>{if(!s.completed.includes(id))s.completed.push(id);})){render();toast(U.nextStop(state)?'已记录到访，可继续下一站':'本次走访已完成');}break;
