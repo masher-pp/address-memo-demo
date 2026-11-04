@@ -135,3 +135,5 @@
 .arrival-preview-open>svg{flex-shrink:0;color:#8d9c94;width:16px}
 .arrival-preview-foot{border-top:1px solid #eef1ee;padding:9px 12px;font-size:11px;color:#91a097}
 @media(min-width:521px){#arrival-dialog{top:12px;bottom:12px;height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);border-radius:10px}}
+
+.ag-public-cover{height:205px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:32px;gap:8px;background:#edf1f3;color:#8e9aa2;font-size:12px}.ag-public-cover svg{width:30px;height:30px}.ag-public-source{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 16px;background:#fff;border-bottom:1px solid #eef1ee;font-size:12px;color:#819087}.ag-public-source a{color:#49836a;flex-shrink:0;display:flex;align-items:center;min-height:44px;text-decoration:none}
