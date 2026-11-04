@@ -1,0 +1,42 @@
+/* Mobile user flows: short lists, explicit actions and readable secondary text. */
+.public-factories{padding:10px 0 4px;border:0}
+.public-factories .section-heading h2 small{display:inline;margin:0 0 0 6px;font-size:11px;color:#687587}
+.public-factory-row{background:#fff;padding:15px 13px;gap:10px;min-height:90px}
+.public-factory-row:nth-child(2){border-radius:10px 10px 0 0}
+.public-factory-row:last-child{border-radius:0 0 10px 10px}
+.public-factory-row small{font-size:12px;color:#687587;line-height:1.6;margin-top:5px}
+.public-factory-row .recent-icon{color:#6386bf}
+.home-add-place{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:48px;margin:14px 0;border:1px solid #dbe2ed;border-radius:8px;background:#fff;color:#2867e8;font-size:14px}
+.home-add-place svg{width:18px;height:18px}
+.browse-all{min-height:44px;margin-top:6px;color:#56667d}
+.result-address,.place-name,.recent-item small,.route-place small,.next-stop small{color:#687587}
+.result-tags span{color:#687587}
+.result-bottom{align-items:flex-end;gap:8px;flex-wrap:wrap;padding:10px 0 13px}
+.result-tags{max-width:100%;gap:5px}
+.result-actions{margin-left:auto;gap:7px}
+.route-add-text{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;min-width:92px;padding:0 8px;border:1px solid #dce3ec;border-radius:6px;color:#52647f;font-size:13px}
+.route-add-text svg{width:15px;height:15px}
+.route-add-text.is-added{color:#51795f;background:#f3f8f4;border-color:#dce8df}
+.result-actions .compact-primary{margin-left:0;min-width:76px}
+.result-list>.empty .primary{margin:14px auto 0}
+.result-list>.empty .plain-button{display:block;margin:4px auto 0}
+.next-stop-actions{justify-content:flex-end}
+.arrival-button{min-height:44px;min-width:100px;justify-content:center;border-radius:6px;background:#f1f5fb;color:#405e8f}
+.route-item{min-height:84px}
+.route-controls .icon-button{min-width:38px;padding:10px 8px}
+.route-place{min-height:52px}
+.list-footnote,.sheet-note,.page-note,.subpage-note{color:#67758a}
+.choice span{color:#586a82}
+.choice input:checked+span{color:#2058bd}
+.menu-row small,.profile p,.record-card footer small{color:#68778e}
+.info-heading p,.contact-summary small,.info-tags small,.quiet-empty{color:#6b788c}
+.ag-cover-compact .ag-cover-info{background:#fff;color:#263247;padding:16px;position:relative;gap:12px;align-items:center;min-height:112px}
+#arrival-dialog .ag-cover.ag-cover-compact{height:auto;min-height:112px;background:#fff}
+.ag-cover-compact .ag-cover-empty{display:none}
+.ag-cover-compact .ag-cover-info>div{min-width:0;flex:1}
+.ag-cover-compact .ag-cover-info h2{color:#263247;font-size:18px;line-height:1.5;text-shadow:none;overflow-wrap:anywhere}
+.ag-cover-compact .ag-cover-info p{color:#6b788c;font-size:12px;text-shadow:none;line-height:1.6}
+#arrival-dialog .ag-cover-compact .ag-cover-info>button{background:#2867e8;color:#fff;flex:0 0 55px;border-radius:7px;min-height:50px}
+.ag-public-source{color:#687587}
+button:focus-visible,a:focus-visible{outline:2px solid #2867e8;outline-offset:2px}
+@media(max-width:370px){.result-tags{max-width:100%}.route-controls .icon-button{min-width:34px;padding:10px 6px}.route-add-text{min-width:88px}.public-factories .section-heading h2{font-size:15px}.public-factories .section-heading h2 small{font-size:10px;margin-left:4px}}

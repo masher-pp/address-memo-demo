@@ -71,6 +71,42 @@
     return gcj02(p.lat,p.lng);
   }
   function toBd09(p){if(p.coordSystem==='bd09')return {lat:p.lat,lng:p.lng};const c=toGcj02(p);return bd09(c.lat,c.lng);}
+  function wgs84FromGcj(lat,lng){
+    let point={lat,lng};
+    for(let i=0;i<8;i++){const offset=gcj02(point.lat,point.lng);const dy=offset.lat-lat,dx=offset.lng-lng;point={lat:point.lat-dy,lng:point.lng-dx};if(Math.max(Math.abs(dx),Math.abs(dy))<1e-8)break;}
+    return point;
+  }
+  function toWgs84(p){
+    if(!hasCoordinates(p))return null;
+    if(p.coordSystem==='bd09'){const c=toGcj02(p);return wgs84FromGcj(c.lat,c.lng);}
+    if(p.coordSystem==='gcj02')return wgs84FromGcj(p.lat,p.lng);
+    return {lat:p.lat,lng:p.lng};
+  }
+  function addOrUpdateLocation(state,fields,{id,time=new Date().toLocaleString('zh-CN',{hour12:false})}={}){
+    id=id||fields.id;
+    const enterprise=String(fields.enterprise??'').trim(),name=String(fields.name??'').trim(),address=String(fields.address??'').trim();
+    if(!enterprise)throw Error('请填写企业名称');if(!name)throw Error('请填写场所名称');if(!address)throw Error('请填写地址');
+    if(enterprise.length>120||name.length>120||address.length>200)throw Error('企业、场所或地址文字过长');
+    const lat=fields.lat??null,lng=fields.lng??null;
+    if((lat===null)!==(lng===null)||lat!==null&&(!Number.isFinite(lat)||!Number.isFinite(lng)||lat< -90||lat>90||lng< -180||lng>180))throw Error('位置坐标无效，请重新选择');
+    const same=s=>s.id!==id&&s.enterprise.trim().toLocaleLowerCase()===enterprise.toLocaleLowerCase()&&s.name.trim().toLocaleLowerCase()===name.toLocaleLowerCase()&&s.address.trim().toLocaleLowerCase()===address.toLocaleLowerCase();
+    const duplicate=state.places.find(same);if(duplicate)return {state,place:duplicate,duplicate:true};
+    const next=clone(state);
+    let place=next.places.find(p=>p.id===id);
+    if(!place){
+      const enterpriseId=next.places.find(p=>p.enterprise.toLocaleLowerCase()===enterprise.toLocaleLowerCase())?.enterpriseId||'e-'+Date.now().toString(36);
+      place={id:id||'p-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),enterpriseId,enterprise,name,address,status:lat===null?'unlocated':'pending',x:null,y:null,lat,lng,accuracy:fields.accuracy??null,coordSystem:lat===null?undefined:fields.coordSystem||'wgs84',tags:[],contact:'',phone:'',note:'',photos:[],comments:[],verification:null,updated:time};
+      if(!place.coordSystem)delete place.coordSystem;
+      next.places.unshift(place);
+    }else{
+      const changed=lat!==(place.lat??null)||lng!==(place.lng??null)||address!==place.address||enterprise!==place.enterprise||name!==place.name||(lat!==null&&(fields.coordSystem||'wgs84')!==(place.coordSystem||'wgs84'));
+      Object.assign(place,{enterprise,name,address,lat,lng,accuracy:fields.accuracy??null,x:null,y:null,updated:time});
+      if(lat!==null)place.coordSystem=fields.coordSystem||'wgs84';
+      else delete place.coordSystem;
+      if(changed||lat===null){place.status=lat===null?'unlocated':'pending';place.verification=null;}
+    }
+    return {state:next,place,duplicate:false};
+  }
   function mapAppUrl(provider,p,platform='android'){
     if(!hasCoordinates(p))throw Error('请先补充真实入口位置，再开始导航');
     const q=encodeURIComponent([p.enterprise,p.name].filter(Boolean).join(' '));
@@ -94,5 +130,5 @@
     }
     return coords?`https://apis.map.qq.com/uri/v1/routeplan?type=drive&to=${q}&tocoord=${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}&referer=addressmemo`:`https://apis.map.qq.com/uri/v1/search?keyword=${q}&referer=addressmemo`;
   }
-  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,mapUrl,mapAppUrl};
+  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,toGcj02,toWgs84,mapUrl,mapAppUrl,addOrUpdateLocation};
 });
