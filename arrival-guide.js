@@ -172,7 +172,7 @@
       thisCanvas.addEventListener('pointercancel',()=>{markStart=null;markEnd=null;redraw();});
     }
     function redraw(){if(!markImage||!markCanvas?.isConnected)return;const preview=markStart&&markEnd?[{type:markTool,x1:markStart.x,y1:markStart.y,x2:markEnd.x,y2:markEnd.y}]:[];draw(markCanvas,markImage,[...markDraft,...preview]);}
-    return {open,edit:id=>open(id,true),isOpen:()=>dialog.open};
+    return {open,close,edit:id=>open(id,true),isOpen:()=>dialog.open};
   }
 
   function draw(canvas,img,marks=[]){
