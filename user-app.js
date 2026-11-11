@@ -89,16 +89,16 @@
     const rows=providers.map((n,i)=>{
       const href=mobile?U.mapAppUrl(n,p,platform):null;
       const inside=`<span class="provider-icon provider-${i}">${n[0]}</span><span>${n}<small>${href?'打开 App 驾车导航':'网页路线规划'}</small></span>${icon('chevron')}`;
-      return href?`<a class="provider-app" href="${esc(href)}" data-action="app-navigation" data-id="${n}" data-place="${p.id}">${inside}</a>`:`<button data-action="provider" data-id="${n}" data-place="${p.id}">${inside}</button>`;
+      return href?`<a class="provider-app" href="${esc(href)}" data-action="app-navigation" data-id="${n}" data-place="${p.id}">${inside}</a>`:`<button data-action="provider-web" data-id="${n}" data-place="${p.id}">${inside}</button>`;
     }).join('');
-    openModal(window.PublicFactories.usesPublishedPosition(p)?'导航到厂区':'导航到入口',heading+`<div class="provider-list">${rows}</div><div id="provider-result" role="status"></div>${mobile?`<details class="navigation-fallback"><summary>地图没有唤起？</summary><p class="sheet-note">请先安装地图 App。微信内打不开时，用手机自带浏览器打开本站。</p><button class="plain-button" data-action="provider" data-id="百度地图" data-place="${p.id}">使用百度网页版规划路线</button></details>`:''}<p class="sheet-note">${window.PublicFactories.usesPublishedPosition(p)?'目的地为官网标注的厂区，实际门岗入口待现场确认。':'目的地已使用记录的入口坐标。'}地图中如出现确认提示，请按提示开始导航。</p>`);
+    openModal(window.PublicFactories.usesPublishedPosition(p)?'导航到厂区':'导航到入口',heading+`<div class="provider-list">${rows}</div><div id="provider-result" role="status"></div>${mobile?`<section class="navigation-fallback"><p class="sheet-note">地图 App 没打开？微信内置浏览器可能拦截唤起，可改用网页路线。</p>${providers.map(n=>`<button class="plain-button" data-action="provider-web" data-id="${n}" data-place="${p.id}">用${n}网页规划</button>`).join('')}</section>`:''}<p class="sheet-note">${window.PublicFactories.usesPublishedPosition(p)?'目的地为官网标注的厂区，实际门岗入口待现场确认。':'目的地已使用记录的入口坐标。'}地图中如出现确认提示，请按提示开始导航。</p>`);
   }
   function openWebRoute(provider,id){
     const p=place(id);if(!U.hasCoordinates(p)){navigate(id);return;}
     const result=$('#provider-result');
     if(provider!=='百度地图'){
-      const url=U.mapUrl(provider,p);window.open(url,'_blank','noopener');
-      result.innerHTML=`<a class="external-map-link" href="${esc(url)}" target="_blank" rel="noopener">打开${esc(provider)}路线规划${icon('arrow')}</a>`;return;
+      const url=U.mapUrl(provider,p);
+      result.innerHTML=`<a class="external-map-link" href="${esc(url)}" target="_blank" rel="noopener">打开${esc(provider)}网页路线${icon('arrow')}</a><p class="sheet-note">如果没有自动跳转，请点击上方链接。</p>`;return;
     }
     result.innerHTML='<p class="provider-status">正在获取当前位置作为起点…</p>';
     if(!window.isSecureContext||!navigator.geolocation){result.innerHTML='<p class="form-error">当前浏览器无法定位，请用手机浏览器打开 HTTPS 链接，或直接使用地图 App 导航。</p>';return;}
@@ -150,7 +150,7 @@
     case'show-map':$('#user-search')?.blur();go('home','map');break;case'map-select':selected=id;renderMap();break;case'show-list':searchOpen=true;go('home');break;
     case'navigate':navigate(id);break;
     case'app-navigation':$('#provider-result').innerHTML='<p class="provider-status">如未进入导航，请检查是否已安装地图 App，或展开下方其他方式。</p>';break;
-    case'provider':openWebRoute(id,el.dataset.place);break;
+    case'provider':case'provider-web':openWebRoute(id,el.dataset.place);break;
     case'navigation-record':modal.close();positionEditor.open(id);break;
     case'route-add':routeAdd(id);break;case'route-manage':managing=!managing;render();break;case'route-up':moveRoute(id,-1);break;case'route-down':moveRoute(id,1);break;
     case'route-remove':if(trySave(s=>{s.route=s.route.filter(x=>x!==id);s.completed=s.completed.filter(x=>x!==id);})){render();toast('已移出走访清单');}break;

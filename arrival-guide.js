@@ -144,7 +144,7 @@
         case 'photo-view':activePhoto=i;returnMode='view';zoomed=false;mode='photo';render();break;
         case 'feedback-photo-view':activePhoto=i;returnMode='feedback-photo';zoomed=false;mode='photo';render();break;
         case 'zoom':zoomed=!zoomed;render();break;
-        case 'feedback':feedback={text:'',photo:''};feedbackInitial=JSON.stringify(feedback);mode='feedback';error='';render();break;
+        case 'feedback':beginEdit();render();break;
         case 'records':recordsReturn='feedback';mode='records';error='';render();break;
         case 'feedback-save':saveFeedback();break;
         case 'keep-edit':mode=returnMode;render();break;
