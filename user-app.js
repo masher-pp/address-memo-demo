@@ -99,10 +99,10 @@
     cancelAppNotice();
     const result=$('#provider-result');if(!result)return;
     result.textContent='';
-    const stop=()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',stop);};
+    const stop=()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',visibility);};
     const visibility=()=>{if(document.hidden)stop();};
-    const timer=setTimeout(()=>{stop();if(modal.open&&result.isConnected&&!document.hidden)result.innerHTML='<p class="provider-status">未打开？请确认已安装地图 App；微信中请用手机浏览器打开。</p>';},1800);
-    document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',stop);cancelAppNotice=stop;
+    const timer=setTimeout(()=>{stop();if(modal.open&&result.isConnected&&!document.hidden)result.innerHTML='<p class="provider-status">未打开？微信中请点右上角「…」，选择“在浏览器打开”。</p>';},1800);
+    document.addEventListener('visibilitychange',visibility);cancelAppNotice=stop;
   }
   function placeMenu(id){const p=place(id);if(!p)return;openModal(p.name,`<p class="sheet-place-name">${esc(p.enterprise)}</p><div class="option-list"><button data-action="menu-info" data-id="${p.id}">${icon('info')}场所资料${icon('chevron')}</button><button data-action="place-location" data-id="${p.id}">${icon('pin')}修改场所位置${icon('chevron')}</button><button data-action="menu-record" data-id="${p.id}">${icon('edit')}编辑图文指引${icon('chevron')}</button><button data-action="menu-route" data-id="${p.id}">${icon('route')}${state.route.includes(id)?'已在走访清单':'加入走访清单'}${icon('chevron')}</button></div>`);}
   function formError(selector,message){const e=$(selector);e.hidden=false;e.textContent=message;e.scrollIntoView({block:'nearest'});}
