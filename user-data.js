@@ -14,7 +14,7 @@
     s.completed=unique(s.completed).filter(id=>s.route.includes(id));
     s.history=Array.isArray(s.history)?s.history:[];
     s.settings={mapProvider:'每次询问',...(s.settings||{})};
-    if(!['每次询问','高德地图','百度地图','腾讯地图'].includes(s.settings.mapProvider))s.settings.mapProvider='每次询问';
+    if(!['每次询问','高德地图','百度地图'].includes(s.settings.mapProvider))s.settings.mapProvider='每次询问';
     return s;
   }
   function persist(state,change,storage){
@@ -116,20 +116,11 @@
       if(platform==='ios')return `baidumap://map/navi?location=${b.lat.toFixed(6)},${b.lng.toFixed(6)}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=ios.addressmemo.demo`;
       return `bdapp://map/navi?location=${b.lat.toFixed(6)},${b.lng.toFixed(6)}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=andr.addressmemo.demo`;
     }
-    if(provider==='高德地图')return mapUrl(provider,p,{callnative:1});
+    if(provider==='高德地图'){
+      const scheme=platform==='ios'?'iosamap://path':'amapuri://route/plan/';
+      return `${scheme}?sourceApplication=addressmemo&dlat=${c.lat.toFixed(6)}&dlon=${c.lng.toFixed(6)}&dname=${q}&dev=0&t=0`;
+    }
     return null;
   }
-  function mapUrl(provider,p,options={}){
-    const name=[p.enterprise,p.name,p.address].filter(Boolean).join(' '),q=encodeURIComponent(name);
-    const coords=hasCoordinates(p)?toGcj02(p):null;
-    if(provider==='高德地图')return coords?`https://uri.amap.com/navigation?to=${coords.lng.toFixed(6)},${coords.lat.toFixed(6)},${q}&mode=car&callnative=${options.callnative??0}&src=addressmemo`:`https://uri.amap.com/search?keyword=${q}&src=addressmemo`;
-    if(provider==='百度地图'){
-      if(!coords)return `https://map.baidu.com/search/${q}`;
-      if(!hasCoordinates(options))throw Error('百度路线规划需要先获取当前位置作为起点');
-      const b=toBd09(p),start=toBd09(options);
-      return `https://api.map.baidu.com/direction?origin=latlng:${start.lat.toFixed(6)},${start.lng.toFixed(6)}|name:${encodeURIComponent('当前位置')}&destination=latlng:${b.lat.toFixed(6)},${b.lng.toFixed(6)}|name:${q}&mode=driving&coord_type=bd09ll&output=html&src=webapp.addressmemo.demo`;
-    }
-    return coords?`https://apis.map.qq.com/uri/v1/routeplan?type=drive&to=${q}&tocoord=${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}&referer=addressmemo`:`https://apis.map.qq.com/uri/v1/search?keyword=${q}&referer=addressmemo`;
-  }
-  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,toGcj02,toWgs84,mapUrl,mapAppUrl,addOrUpdateLocation};
+  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,toGcj02,toWgs84,mapAppUrl,addOrUpdateLocation};
 });
