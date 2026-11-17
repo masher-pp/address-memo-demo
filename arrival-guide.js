@@ -11,7 +11,7 @@
     const dialog=document.createElement('dialog');
     dialog.id='arrival-dialog';dialog.setAttribute('aria-label','到访指引');
     document.body.append(dialog);
-    let placeId=null,mode='view',draft=null,initial='',previousOverflow='',error='',busy=false,locating=false,session=0;
+    let placeId=null,mode='view',draft=null,initial='',previousOverflow='',error='',busy=false,locating=false,locatedNow=false,session=0;
     let returnMode='view',activePhoto=0,markDraft=[],markTool='arrow',markStart=null,markEnd=null,markImage=null,markCanvas=null;
     let feedback={text:'',photo:''},feedbackInitial='',zoomed=false,viewScroll=0,recordsReturn='feedback';
     const place=()=>host.getPlace(placeId);
@@ -29,20 +29,28 @@
       render();if(!dialog.open)dialog.showModal();
     }
     function close(){session++;dialog.close();document.body.style.overflow=previousOverflow;host.onClose?.();}
-    function beginEdit(){draft=G.draftFor(place());initial=JSON.stringify(draft);mode='edit';error='';}
+    function beginEdit(){draft=G.draftFor(place());initial=JSON.stringify(draft);locatedNow=false;mode='edit';error='';}
     function currentGuide(){return G.draftFor(place());}
     function photoButton(s,i){return s.photo?`<button class="ag-step-photo" data-ag="photo-view" data-index="${i}" aria-label="放大第 ${i+1} 步照片"><canvas data-ag-photo="${i}" role="img" aria-label="第 ${i+1} 步路线照片"></canvas></button>`:'';}
     function renderView(){
       const p=place(),g=currentGuide(),hasContent=g.steps.some(s=>s.description||s.photo),cover=p.photos?.[0]?.src;
       const noRealPhoto=!cover;
-      return bar('到访指引',host.more?`<button data-ag="more" aria-label="更多场所操作">${icon('more')}</button>`:'')+`<div class="ag-body ag-reader"><section class="ag-place"><div class="ag-cover ${noRealPhoto?'ag-cover-compact':''}">${cover?`<img src="${esc(cover)}" alt="场所入口">`:`<div class="ag-cover-empty">${icon('pin')}<span>尚无现场照片</span></div>`}<div class="ag-cover-info"><div><h2>${esc(p.enterprise)}</h2><p>${esc(p.name)} · ${esc(p.address)}</p></div><button data-ag="navigate" aria-label="导航到入口">${icon('arrow')}<span>导航</span></button></div></div></section>${g.parking?`<section class="ag-parking"><h2>停车指南</h2><p>${esc(g.parking)}</p></section>`:''}<section class="ag-route"><div class="ag-section-head"><h2>企业指路</h2><button data-ag="feedback">${icon('edit')}我来指路</button></div>${hasContent?`<ol class="ag-timeline">${g.steps.map((s,i)=>`<li class="ag-read-step"><span class="ag-step-num">${num(i)}</span><div class="ag-step-content"><p>${esc(s.description)}</p>${photoButton(s,i)}</div></li>`).join('')}</ol>`:'<div class="ag-empty">暂时还没有指路信息</div>'}</section></div>`;
+      return bar('到访指引',host.more?`<button data-ag="more" aria-label="更多场所操作">${icon('more')}</button>`:'')+`<div class="ag-body ag-reader"><section class="ag-place"><div class="ag-cover ${noRealPhoto?'ag-cover-compact':''}">${cover?`<img src="${esc(cover)}" alt="场所入口">`:`<div class="ag-cover-empty">${icon('pin')}<span>尚无现场照片</span></div>`}<div class="ag-cover-info"><div><h2>${esc(p.enterprise)}</h2><p>${esc(p.name)} · ${esc(p.address)}</p></div><button data-ag="navigate" aria-label="导航到入口">${icon('arrow')}<span>导航</span></button></div></div></section>${g.parking?`<section class="ag-parking"><h2>停车指南</h2><p>${esc(g.parking)}</p></section>`:''}<section class="ag-route"><div class="ag-section-head"><h2>企业指路${p.arrivalGuide?.demo?'<span class="ag-demo-chip">示例</span>':''}</h2><button data-ag="feedback">${icon('edit')}我来指路</button></div>${hasContent?`<ol class="ag-timeline">${g.steps.map((s,i)=>`<li class="ag-read-step"><span class="ag-step-num">${num(i)}</span><div class="ag-step-content"><p>${esc(s.description)}</p>${photoButton(s,i)}</div></li>`).join('')}</ol>`:'<div class="ag-empty ag-empty-cta">'+icon('pin')+'<p>还没有人补充过这里的入口指引</p><button class="ag-primary" data-ag="feedback">'+icon('camera')+'我来指路</button><small>走到门口拍一张，写下怎么进来，下一个人就不用再找</small></div>'}</section></div>`;
     }
     function stepEditor(s,i){
       return `<article class="ag-edit-step" data-step="${esc(s.id)}"><header><b><span>${num(i)}</span> ${i===0?'从这里开始':'下一步'}</b><div><button data-ag="move-up" data-index="${i}" aria-label="上移第 ${i+1} 步" ${i===0?'disabled':''}>↑</button><button data-ag="move-down" data-index="${i}" aria-label="下移第 ${i+1} 步" ${i===draft.steps.length-1?'disabled':''}>↓</button><button data-ag="remove-step" data-index="${i}" aria-label="删除第 ${i+1} 步" ${draft.steps.length===1?'disabled':''}>${icon('trash')}</button></div></header><label class="ag-photo-input">${s.photo?`<canvas data-ag-edit-photo="${i}" role="img" aria-label="第 ${i+1} 步照片"></canvas><span class="ag-replace">更换照片</span>`:`<span class="ag-photo-empty">${icon('camera')}拍摄 / 选择照片</span>`}<input data-ag="photo-file" data-index="${i}" type="file" accept="image/jpeg,image/png,image/webp" aria-label="第 ${i+1} 步照片"></label>${s.photo?`<div class="ag-photo-tools"><button data-ag="annotate" data-index="${i}">画箭头 / 框${s.marks?.length?' · '+s.marks.length:''}</button><button data-ag="remove-photo" data-index="${i}">移除照片</button></div>`:''}<label class="ag-step-text"><span class="ag-sr">第 ${i+1} 步说明</span><textarea data-ag-field="description" data-index="${i}" maxlength="300" rows="3" placeholder="${i===0?'例如：从科创路东门进入，沿主路直行约200米':'例如：在A3栋左转，一层蓝色门牌处即到'}">${esc(s.description)}</textarea><small data-ag-count="${i}">${s.description.length}/300</small></label></article>`;
     }
     function renderEditor(){
       const p=place();
-      return bar('填写到访指引',`<button class="ag-text" data-ag="preview">预览</button>`)+`<div class="ag-body"><div class="ag-edit-intro"><h2>${esc(p.enterprise)}</h2><p>${esc(p.name)}</p></div><section class="ag-position"><div><h2>入口位置</h2><button data-ag="locate" ${locating?'disabled':''}>${icon('pin')}${locating?'定位中…':draft.lat!==null?'重新定位':'使用手机定位'}</button></div>${draft.lat!==null?`<p class="ag-coordinate">已获取 ${draft.lat.toFixed(5)}, ${draft.lng.toFixed(5)}${draft.accuracy!==null?' · 精度约 '+Math.round(draft.accuracy)+' 米':''}</p>`:'<p class="ag-position-hint">位置不变时无需重新定位。</p>'}${field('address',draft.address,'道路、园区、楼栋和门牌')}</section><section class="ag-parking-edit">${field('parking',draft.parking,'例如：东门外停车，步行进入园区')}</section><div class="ag-edit-route-head"><h2>图文路线</h2></div><div class="ag-edit-steps">${draft.steps.map(stepEditor).join('')}</div><button class="ag-add-step" data-ag="add-step" ${draft.steps.length>=8?'disabled':''}>${icon('plus')}${draft.steps.length>=8?'最多 8 步':'添加下一步'}</button>${busy?'<p class="ag-busy" role="status">正在处理照片…</p>':''}${errorBox()}</div>`+footer(`<button class="ag-primary" data-ag="save" ${busy||locating?'disabled':''}>保存指引</button>`);
+      const published=!!p.publicSource&&!!window.PublicFactories?.usesPublishedPosition?.(p)&&!locatedNow;
+      const position=draft.lat===null
+        ?{cls:'is-missing',text:'还没有入口坐标。到门口后点「使用手机定位」，也可以只填地址线索。'}
+        :locatedNow
+          ?{cls:'is-device',text:`已用手机定位更新${draft.accuracy!==null?`，精度约 ±${Math.round(draft.accuracy)} 米`:''}。`}
+          :published
+            ?{cls:'is-public',text:'当前沿用官网公开点位，未经现场核实。建议走到入口后重新定位。'}
+            :{cls:'is-saved',text:'沿用已保存的入口坐标；入口换了就重新定位。'};
+      return bar('填写到访指引',`<button class="ag-text" data-ag="preview">预览</button>`)+`<div class="ag-body"><div class="ag-edit-intro"><h2>${esc(p.enterprise)}</h2><p>${esc(p.name)}</p></div><section class="ag-position"><div><h2>入口位置</h2><button data-ag="locate" ${locating?'disabled':''}>${icon('pin')}${locating?'定位中…':draft.lat!==null?'重新定位':'使用手机定位'}</button></div><p class="ag-position-state ${position.cls}">${icon('info')}<span>${position.text}</span></p>${field('address',draft.address,'道路、园区、楼栋和门牌')}</section><section class="ag-parking-edit">${field('parking',draft.parking,'例如：东门外停车，步行进入园区')}</section><div class="ag-edit-route-head"><h2>图文路线</h2></div><div class="ag-edit-steps">${draft.steps.map(stepEditor).join('')}</div><button class="ag-add-step" data-ag="add-step" ${draft.steps.length>=8?'disabled':''}>${icon('plus')}${draft.steps.length>=8?'最多 8 步':'添加下一步'}</button>${busy?'<p class="ag-busy" role="status">正在处理照片…</p>':''}${errorBox()}</div>`+footer(`<button class="ag-primary" data-ag="save" ${busy||locating?'disabled':''}>保存指引</button>`);
     }
     function renderPreview(){
       return bar('预览指引')+`<div class="ag-body"><div class="ag-preview-note">尚未保存</div><h2 class="ag-preview-title">${esc(place().enterprise)}</h2>${draft.parking?`<section class="ag-parking"><h2>停车说明</h2><p>${esc(draft.parking)}</p></section>`:''}<ol class="ag-timeline ag-preview-timeline">${draft.steps.map((s,i)=>`<li class="ag-read-step"><span class="ag-step-num">${num(i)}</span><div class="ag-step-content"><p>${esc(s.description||'（未填写说明）')}</p>${s.photo?`<canvas data-ag-edit-photo="${i}" role="img" aria-label="第 ${i+1} 步照片"></canvas>`:''}</div></li>`).join('')}</ol>${errorBox()}</div>`+footer('<button class="ag-primary" data-ag="return-edit">继续编辑</button>');
@@ -90,7 +98,7 @@
       const request=session;locating=true;render(true);
       navigator.geolocation.getCurrentPosition(pos=>{
         if(request!==session||mode!=='edit')return;
-        locating=false;draft.lat=pos.coords.latitude;draft.lng=pos.coords.longitude;draft.accuracy=pos.coords.accuracy;render(true);
+        locating=false;draft.lat=pos.coords.latitude;draft.lng=pos.coords.longitude;draft.accuracy=pos.coords.accuracy;locatedNow=true;render(true);
       },e=>{
         if(request!==session||mode!=='edit')return;
         locating=false;render(true);setError(e.code===1?'定位权限未开启，请在浏览器设置中允许位置访问。':e.code===3?'定位超时，请到室外或信号较好的位置重试。':'暂时无法定位，请稍后重试；已填内容会保留。');

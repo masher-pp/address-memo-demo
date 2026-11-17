@@ -107,20 +107,44 @@
     }
     return {state:next,place,duplicate:false};
   }
-  function mapAppUrl(provider,p,platform='android'){
+  // Android 用 intent:// 交给系统分发：已安装直接拉起，未安装或浏览器不支持时
+  // 回到 S.browser_fallback_url，不会把用户丢在 ERR_UNKNOWN_URL_SCHEME 错误页。
+  function androidIntent(path,scheme,pkg,fallback){
+    const back=fallback?`;S.browser_fallback_url=${encodeURIComponent(fallback)}`:'';
+    return `intent://${path}#Intent;scheme=${scheme};package=${pkg}${back};end`;
+  }
+  function mapAppUrl(provider,p,platform='android',fallback=null){
     if(!hasCoordinates(p))throw Error('请先补充真实入口位置，再开始导航');
     const q=encodeURIComponent([p.enterprise,p.name].filter(Boolean).join(' '));
     const c=toGcj02(p);
     if(provider==='百度地图'){
       const b=toBd09(p);
-      if(platform==='ios')return `baidumap://map/navi?location=${b.lat.toFixed(6)},${b.lng.toFixed(6)}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=ios.addressmemo.demo`;
-      return `bdapp://map/navi?location=${b.lat.toFixed(6)},${b.lng.toFixed(6)}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=andr.addressmemo.demo`;
+      const loc=`${b.lat.toFixed(6)},${b.lng.toFixed(6)}`;
+      if(platform==='ios')return `baidumap://map/navi?location=${loc}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=ios.addressmemo.demo`;
+      return androidIntent(`map/navi?location=${loc}&coord_type=bd09ll&query=${q}&type=DEFAULT&src=andr.addressmemo.demo`,'bdapp','com.baidu.BaiduMap',fallback);
     }
     if(provider==='高德地图'){
-      const scheme=platform==='ios'?'iosamap://path':'amapuri://route/plan/';
-      return `${scheme}?sourceApplication=addressmemo&dlat=${c.lat.toFixed(6)}&dlon=${c.lng.toFixed(6)}&dname=${q}&dev=0&t=0`;
+      const query=`sourceApplication=addressmemo&dlat=${c.lat.toFixed(6)}&dlon=${c.lng.toFixed(6)}&dname=${q}&dev=0&t=0`;
+      if(platform==='ios')return `iosamap://path?${query}`;
+      return androidIntent(`route/plan/?${query}`,'amapuri','com.autonavi.minimap',fallback);
     }
     return null;
   }
-  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,toGcj02,toWgs84,mapAppUrl,addOrUpdateLocation};
+  // 导入备份：只接受结构完整的场所数据，其余字段按当前版本补齐，避免旧文件写坏本地状态。
+  function sanitizeImport(raw){
+    if(!raw||typeof raw!=='object')throw Error('这不是地址备忘录导出的 JSON 文件');
+    if(!Array.isArray(raw.places)||!raw.places.length)throw Error('备份里没有任何场所记录');
+    const seen=new Set(),places=raw.places.map((p,i)=>{
+      if(!p||typeof p!=='object')throw Error(`第 ${i+1} 条记录格式不正确`);
+      const enterprise=String(p.enterprise||'').trim(),name=String(p.name||'').trim(),address=String(p.address||'').trim();
+      if(!enterprise||!name||!address)throw Error(`第 ${i+1} 条记录缺少企业、场所或地址`);
+      let id=String(p.id||'').trim()||`p-import-${i}`;
+      while(seen.has(id))id=`${id}-${i}`;
+      seen.add(id);
+      return {...p,id,enterprise,name,address};
+    });
+    const ids=new Set(places.map(p=>p.id)),keep=list=>(Array.isArray(list)?list:[]).filter(id=>ids.has(id));
+    return {version:2,places,route:keep(raw.route),recent:keep(raw.recent),recorded:keep(raw.recorded),completed:keep(raw.completed),history:Array.isArray(raw.history)?raw.history:[],settings:raw.settings||{}};
+  }
+  return {KEY,normalize,persist,filterPlaces,nextStop,hasLocation,hasCoordinates,orderStops,gcj02,toGcj02,toWgs84,mapAppUrl,sanitizeImport,addOrUpdateLocation};
 });

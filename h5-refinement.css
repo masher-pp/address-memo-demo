@@ -58,3 +58,20 @@ body:has(#user-content.has-dock)>.user-toast{bottom:calc(var(--nav) + 104px)}
 .visit-undo{color:var(--blue);font-size:12px;padding:0 6px;flex-shrink:0}
 .route-item.is-completed .route-controls .icon-button{min-width:32px;padding:10px 5px}
 @media(max-width:370px){.result-tags{max-width:100%}.route-controls .icon-button{min-width:34px;padding:10px 6px}.route-add-text{min-width:88px}.public-factories .section-heading h2{font-size:15px}.public-factories .section-heading h2 small{font-size:10px;margin-left:4px}}
+
+/* —— 2026-11-17 走查修正 —— */
+.ag-empty-cta{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 18px;color:#8a949c}
+.ag-empty-cta svg{width:26px;height:26px;stroke:#b3bcc3;fill:none;stroke-width:1.6}
+.ag-empty-cta p{margin:0;font-size:14px;color:#6d777e}
+.ag-empty-cta button.ag-primary{width:auto;margin:2px 0 0;padding:11px 22px;font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.ag-empty-cta button.ag-primary svg{width:16px;height:16px;stroke:#fff}
+.ag-empty-cta small{font-size:12px;color:#9aa4ab;line-height:1.6;text-align:center;max-width:250px}
+.ag-demo-chip{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:5px;background:#fff2e0;color:#ad6b16;font-size:11px;font-weight:500;vertical-align:2px}
+.ag-position-state{display:flex;align-items:flex-start;gap:6px;margin:8px 0 0;padding:9px 11px;border-radius:9px;background:#f3f5f7;color:#6d777e;font-size:12.5px;line-height:1.55}
+.ag-position-state svg{width:14px;height:14px;flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:1.7}
+.ag-position-state.is-public{background:#fff5e8;color:#8a5a12}
+.ag-position-state.is-device{background:#eaf6ef;color:#1f6b45}
+.ag-position-state.is-missing{background:#f3f5f7;color:#7b858c}
+.next-stop-guide{display:inline-flex;align-items:center;gap:2px;margin-top:8px;color:var(--blue);font-size:13px}
+.next-stop-guide svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8}
+.ag-cover-info h2,.next-stop h2{text-wrap:balance}
