@@ -1,0 +1,41 @@
+name: Regression
+
+# 公开仓库的标准 runner 不计费，每次 push 都跑一遍，防止改坏已验收的流程。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm install --no-audit --no-fund playwright@^1
+          npx playwright install --with-deps chromium
+
+      - name: Unit tests
+        run: node user-data.test.js
+
+      - name: End-to-end tests
+        run: |
+          python3 -m http.server 8011 --bind 127.0.0.1 >/dev/null 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER 2>/dev/null' EXIT
+          sleep 2
+          node tests/visit-flow.cjs
+          node tests/mobile-flow.cjs
+          node tests/position-map.cjs
