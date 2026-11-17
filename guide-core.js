@@ -5,8 +5,10 @@
   'use strict';
   const clone=value=>JSON.parse(JSON.stringify(value));
   const step=()=>({id:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),description:'',photo:'',marks:[]});
-  function draftFor(p){
-    const guide=p.arrivalGuide;
+  function draftFor(p,{freshFromDemo=false}={}){
+    // 阅读态要看到示例指引；编辑态则从空白开始，避免用户被迫先删掉三段演示内容。
+    const raw=p.arrivalGuide;
+    const guide=raw&&!(freshFromDemo&&raw.demo)?raw:null;
     const steps=guide?.steps?.length?clone(guide.steps):[{...step(),description:p.note||'',photo:p.photos?.[0]?.src||''}];
     return {address:p.address||'',lat:p.lat??null,lng:p.lng??null,accuracy:p.accuracy??null,parking:guide?.parking||'',steps};
   }

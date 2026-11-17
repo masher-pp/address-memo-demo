@@ -29,7 +29,7 @@
       render();if(!dialog.open)dialog.showModal();
     }
     function close(){session++;dialog.close();document.body.style.overflow=previousOverflow;host.onClose?.();}
-    function beginEdit(){draft=G.draftFor(place());initial=JSON.stringify(draft);locatedNow=false;mode='edit';error='';}
+    function beginEdit(){draft=G.draftFor(place(),{freshFromDemo:true});initial=JSON.stringify(draft);locatedNow=false;mode='edit';error='';}
     function currentGuide(){return G.draftFor(place());}
     function photoButton(s,i){return s.photo?`<button class="ag-step-photo" data-ag="photo-view" data-index="${i}" aria-label="放大第 ${i+1} 步照片"><canvas data-ag-photo="${i}" role="img" aria-label="第 ${i+1} 步路线照片"></canvas></button>`:'';}
     function renderView(){

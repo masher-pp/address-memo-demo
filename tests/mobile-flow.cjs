@@ -26,7 +26,12 @@ fs.mkdirSync(out, {recursive:true});
       const nativeLinks = page.locator('.provider-app');
       assert.equal(await nativeLinks.count(), 2);
       for (const href of await nativeLinks.evaluateAll(nodes => nodes.map(a => a.getAttribute('href')))) {
-        assert.match(href, /^(iosamap|amapuri|baidumap|bdapp):\/\//);
+        if (href.startsWith('intent://')) {
+          // 安卓交给系统分发：必须声明目标包名，未安装时才能回退到页面。
+          assert.match(href, /#Intent;scheme=(amapuri|bdapp);package=com\.(autonavi\.minimap|baidu\.BaiduMap)[;#]/);
+        } else {
+          assert.match(href, /^(iosamap|amapuri|baidumap|bdapp):\/\//);
+        }
         assert.doesNotMatch(href, /^https?:/);
       }
       assert.equal(await page.locator('[data-action="provider-web"], .navigation-fallback, .external-map-link').count(), 0);
